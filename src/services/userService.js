@@ -67,6 +67,15 @@ exports.getUsers = async function () {
   });
 };
 
+exports.getUserById = async function (userData) {
+  // Cek apakah user ada
+  const user = await User.findByPk(userData);
+  if (!user) {
+    throw { status: 404, message: "User not found" };
+  }
+  return user;
+}
+
 exports.updateUser = async function (userData) {
   const { id, name, email, password, phone } = userData;
 

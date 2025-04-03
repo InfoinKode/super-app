@@ -3,9 +3,17 @@ const User = require("../models/userModel");
 
 exports.authMiddleware = async (req, res, next) => {
   try {
+    // Jika menggunakan session
+    if (req.session && req.session.user) {
+      req.user = req.session.user;
+      return next();
+    }
+    
     const authHeader = req.header("Authorization");
     if (!authHeader) {
-      return res.status(401).json({ error: "Access denied, no token provided" });
+      return res
+        .status(401)
+        .json({ error: "Access denied, no token provided" });
     }
 
     const [scheme, token] = authHeader.split(" ");

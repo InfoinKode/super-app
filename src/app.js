@@ -2,15 +2,36 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const sequelize = require('./config/dbConfig')
+const path = require('path');
+const bodyParser = require("body-parser");
+const session = require("express-session");
 
-app.use(express.json());
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+// Menyajikan file statis (misalnya CSS, JS, gambar) dari folder public
+app.use(express.static(path.join(__dirname, '../public')));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+app.use(
+  session({
+    secret: "apanyaclay", // Gantilah dengan secret key yang lebih aman
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      maxAge: 60 * 60 * 1000, // 1 jam (dalam milidetik)
+    },
+  })
+);
 
 // Koneksi ke database
 sequelize.authenticate()
   .then(() => console.log('Database connected...'))
   .catch(err => console.error('Database connection error:', err));
 
-app.use('/api' ,require('./routes'));
+app.use(require('./routes'));
 app.use(require("./middlewares/errorMiddleware.js"))
 
 module.exports = app;

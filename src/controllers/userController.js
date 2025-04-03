@@ -1,4 +1,4 @@
-const { registerUser, loginUser, getUsers, updateUser, deleteUser } = require("../services/userService");
+const { registerUser, loginUser, getUsers, updateUser, deleteUser, getUserById } = require("../services/userService");
 
 /** ✅ CREATE - Registrasi User */
 exports.registerUser = async function (req, res, next) {
@@ -75,5 +75,22 @@ exports.deleteUser = async (req, res, next) => {
     });
   } catch (error) {
     next(error); // Serahkan error ke middleware
+  }
+};
+
+exports.getUserData = async (req, res) => {
+  try {
+    // Ambil data user menggunakan ID
+    const user = await getUserById(req.user.id);
+
+    return res.status(200).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+    });
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    res.status(500).json({ error: error.message || "Internal Server Error" });
   }
 };
