@@ -22,7 +22,7 @@ exports.exchangeAuthorizationCode = async (code, clientId, clientSecret) => {
     throw new Error("Invalid authorization code");
   }
   
-  const accessToken = jwt.sign({ userId: authCode.user_id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  const accessToken = jwt.sign({ id: authCode.user_id }, process.env.JWT_SECRET, { expiresIn: "1h" });
   const refreshToken = uuidv4();
   await Token.create({
     access_token: accessToken,

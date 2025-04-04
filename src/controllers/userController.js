@@ -10,7 +10,16 @@ exports.registerUser = async function (req, res, next) {
       data: userRegister,
     });
   } catch (error) {
-    next(error); // Serahkan error ke middleware
+    if (error.status) {
+      return res.status(error.status).json({
+        status: "error",
+        message: error.message,
+      });
+    }
+    return res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+    });
   }
 };
 
@@ -32,7 +41,16 @@ exports.loginUser = async function (req, res, next) {
       },
     });
   } catch (error) {
-    next(error); // Serahkan error ke middleware
+    if (error.status) {
+      return res.status(error.status).json({
+        status: "error",
+        message: error.message,
+      });
+    }
+    return res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+    });
   }
 };
 
@@ -46,21 +64,40 @@ exports.getAllUsers = async (req, res, next) => {
       data: users,
     });
   } catch (error) {
-    next(error); // Serahkan error ke middleware
+    if (error.status) {
+      return res.status(error.status).json({
+        status: "error",
+        message: error.message,
+      });
+    }
+    return res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+    });
   }
 };
 
 /** ✅ UPDATE - Update User */
 exports.updateUser = async (req, res, next) => {
   try {
-    const user = await updateUser(req.body);
+    const { name, email, password, phone } = req.body;
+    const user = await updateUser({ id: req.user.id, name, email, password, phone });
     return res.json({
       status: "success",
       message: "User updated successfully",
       data: user,
     });
   } catch (error) {
-    next(error); // Serahkan error ke middleware
+    if (error.status) {
+      return res.status(error.status).json({
+        status: "error",
+        message: error.message,
+      });
+    }
+    return res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+    });
   }
 };
 
@@ -74,7 +111,16 @@ exports.deleteUser = async (req, res, next) => {
       data: result,
     });
   } catch (error) {
-    next(error); // Serahkan error ke middleware
+    if (error.status) {
+      return res.status(error.status).json({
+        status: "error",
+        message: error.message,
+      });
+    }
+    return res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+    });
   }
 };
 
@@ -90,7 +136,15 @@ exports.getUserData = async (req, res) => {
       phone: user.phone,
     });
   } catch (error) {
-    console.error("Error fetching user data:", error);
-    res.status(500).json({ error: error.message || "Internal Server Error" });
+    if (error.status) {
+      return res.status(error.status).json({
+        status: "error",
+        message: error.message,
+      });
+    }
+    return res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+    });
   }
 };

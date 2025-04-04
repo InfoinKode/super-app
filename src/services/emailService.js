@@ -5,7 +5,7 @@ const transporter = require("../config/emailConfig");
  * @param {string} to - Email tujuan
  * @param {string} name - Nama pengguna
  */
-const sendRegistrationEmail = async (to, name) => {
+exports.sendRegistrationEmail = async function (to, name) {
   try {
     const mailOptions = {
       from: `${process.env.APP_NAME} <${process.env.EMAIL_USER}>`,
@@ -23,4 +23,20 @@ const sendRegistrationEmail = async (to, name) => {
   }
 };
 
-module.exports = sendRegistrationEmail;
+exports.sendOTPEmail = async function (to, otp) {
+  try {
+    const mailOptions = {
+      from: `${process.env.APP_NAME} <${process.env.EMAIL_USER}>`,
+      to,
+      subject: "Kode OTP Anda",
+      html: `<h2>Hallo</h2>
+             <p>Kode OTP Anda adalah: ${otp}. Berlaku selama 5 menit.</p>
+             <p>Best Regards,<br>Your App Team</p>`
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`OTP email sent to ${to}`);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+}

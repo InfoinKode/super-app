@@ -4,10 +4,11 @@ const v1 = require("./v1");
 const oauth = require("./oauth");
 const auth = require("./authRoutes");
 
-router.get("/", (req, res, next) => {
+router.get("/", async (req, res, next) => {
   if (req.session.loggedIn) {
     res.send(
-      `<h1>Welcome ${req.session.user.name}, you are logged in!</h1><a href="/logout">Logout</a>`
+      `<h1>Welcome ${req.session.user.name}, Anda berhasil login dengan 2FA!!</h1>
+      <a href="/logout">Logout</a>`
     );
   } else {
     res.send('<h1>Welcome to the Home Page!</h1><a href="/login">Login</a>');

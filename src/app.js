@@ -1,11 +1,15 @@
 require('dotenv').config();
 const express = require('express');
-const app = express();
 const sequelize = require('./config/dbConfig')
 const path = require('path');
 const bodyParser = require("body-parser");
 const session = require("express-session");
+const useragent = require('express-useragent');
+const { sessionStatus } = require('./services/whatsappService');
 
+
+const app = express();
+app.use(useragent.express());
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -25,13 +29,13 @@ app.use(
     },
   })
 );
-
 // Koneksi ke database
 sequelize.authenticate()
   .then(() => console.log('Database connected...'))
   .catch(err => console.error('Database connection error:', err));
 
+sessionStatus('im3')
+
 app.use(require('./routes'));
-app.use(require("./middlewares/errorMiddleware.js"))
 
 module.exports = app;

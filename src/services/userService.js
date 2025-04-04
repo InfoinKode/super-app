@@ -2,6 +2,8 @@ const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const sendRegistrationEmail = require("./emailService");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const Otp = require("../models/otpModel");
 
 exports.registerUser = async function (userData) {
   const { name, email, password, phone } = userData;
@@ -60,6 +62,42 @@ exports.loginUser = async function (userData) {
 
   return user;
 };
+
+exports.generateOTP = async function () {
+  return crypto.randomInt(100000, 999999).toString();
+}
+
+exports.saveOTP = async function (userId, otp) {
+  const expiresAt = Date.now() + 5 * 60 * 1000; // Berlaku 5 menit
+  const existingOtp = await Otp.findOne({ where: { user_id: userId } });
+
+  if (existingOtp) {
+    await Otp.update(
+      { code: otp, expires_at: expiresAt },
+      { where: { user_id: userId } }
+    );
+  } else {
+    await Otp.create({
+      user_id: userId,
+      code: otp,
+      expires_at: expiresAt
+    });
+  }
+}
+
+exports.verifyOTP = async function (user_id, otpInput) {
+  // Ambil OTP terbaru untuk user
+  const otpData = await Otp.findOne({
+    where: { user_id },
+    order: [['expires_at', 'DESC']], // Urutkan dari yang terbaru
+  });
+
+  if (!otpData) return false; // OTP tidak ditemukan
+
+  if (Date.now() > new Date(otpData.expires_at).getTime()) return false; // Expired
+
+  return otpInput === otpData.code; // Cek OTP
+}
 
 exports.getUsers = async function () {
   return await User.findAll({
