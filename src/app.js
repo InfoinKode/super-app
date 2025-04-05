@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const session = require("express-session");
 const useragent = require('express-useragent');
 const { sessionStatus } = require('./services/whatsappService');
-
+const flash = require('connect-flash');
 
 const app = express();
 app.use(useragent.express());
@@ -29,6 +29,14 @@ app.use(
     },
   })
 );
+app.use(flash());
+
+app.use((req, res, next) => {
+  res.locals.success = req.flash('success');
+  res.locals.error = req.flash('error');
+  next();
+});
+
 // Koneksi ke database
 sequelize.authenticate()
   .then(() => console.log('Database connected...'))

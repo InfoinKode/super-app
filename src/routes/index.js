@@ -5,14 +5,7 @@ const oauth = require("./oauth");
 const auth = require("./authRoutes");
 
 router.get("/", async (req, res, next) => {
-  if (req.session.loggedIn) {
-    res.send(
-      `<h1>Welcome ${req.session.user.name}, Anda berhasil login dengan 2FA!!</h1>
-      <a href="/logout">Logout</a>`
-    );
-  } else {
-    res.send('<h1>Welcome to the Home Page!</h1><a href="/login">Login</a>');
-  }
+  res.render('index', {user: req.session.user})
 });
 
 router.use("/api", v1);

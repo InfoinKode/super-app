@@ -7,8 +7,8 @@ exports.login = async (req, res) => {
   if (req.session.loggedIn) {
     return res.redirect("/");
   }
-  const { client_id, redirect_uri, response_type, scope, error } = req.query;
-  return res.render("login", { client_id, redirect_uri, response_type, scope, error });
+  const { client_id, redirect_uri, response_type, scope } = req.query;
+  return res.render("auth/login", { client_id, redirect_uri, response_type, scope });
 };
 
 exports.handleLogin = async (req, res, next) => {
@@ -25,12 +25,12 @@ exports.handleLogin = async (req, res, next) => {
     const otp = await userService.generateOTP();
     console.log(otp);
     userService.saveOTP(user.id, otp);
-    await sendOTPEmail(user.email, otp);
-    await sendWhatsAppMessage(
-      `${user.phone}@c.us`,
-      `Kode OTP Anda: ${otp}. Berlaku selama 5 menit.`,
-      "im3"
-    );
+    // await sendOTPEmail(user.email, otp);
+    // await sendWhatsAppMessage(
+    //   `${user.phone}@c.us`,
+    //   `Kode OTP Anda: ${otp}. Berlaku selama 5 menit.`,
+    //   "im3"
+    // );
 
     const { ip, browser, os, platform } = await userAgent(req);
     const grupId = `6282170474047-1554349635@g.us`;
@@ -41,18 +41,19 @@ exports.handleLogin = async (req, res, next) => {
       const redirectUrl = `/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=${response_type}&scope=${scope}`;
       return res.redirect(redirectUrl);
     }
+    req.flash("success", `Silahkan verifikasi 2FA!`);
     return res.redirect("/verify");
   } catch (error) {
     if (client_id && redirect_uri && response_type && scope) {
       const redirectUrl = `/login?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=${response_type}&scope=${scope}`;
       return res.redirect(redirectUrl);
     }
-    return res.render("login", {
+    return res.render("auth/login", {
       client_id,
       redirect_uri,
       response_type,
       scope,
-      error: error.message,
+      error: error.message
     });
     // next(error);
   }
@@ -61,15 +62,16 @@ exports.handleLogin = async (req, res, next) => {
 exports.verify = async function (req, res) {
   const user = req.session.user;
   if (!user) return res.redirect('/login?error=Sesi tidak ada');
-  return res.render('verify')
+  return res.render('auth/verify')
 }
 
 exports.verifyOTP = async function (req, res) {
   const { otp } = req.body;
   const user = req.session.user;
   if (!user) return res.redirect('login', {error: 'Sesi tidak valid!'});
-  if (userService.verifyOTP(user.email, otp)) {
+  if (await userService.verifyOTP(user.id, otp) === true) {
     req.session.loggedIn = true;
+    req.flash("success", `Berhasil Login!`);
     res.redirect("/");
   } else {
     res.status(400).send("Kode OTP salah atau sudah kadaluarsa!");
@@ -77,7 +79,7 @@ exports.verifyOTP = async function (req, res) {
 };
 
 exports.register = async function (req, res) {
-  res.render("register");
+  res.render("auth/register");
 };
 
 exports.handleRegister = async function (req, res) {
@@ -104,11 +106,12 @@ exports.handleRegister = async function (req, res) {
       phone: `111111111${new Date().getMonth() + 1}${new Date().getDate()}`,
     };
     const user = await userService.registerUser(data);
-    return res.render("register", {
+    req.flash('success', 'Registrasi berhasil!');
+    return res.render("auth/register", {
       success: `Registrasi berhasil! Silakan cek email ${user.email}.`,
     });
   } catch (error) {
-    return res.render("register", {
+    return res.render("auth/register", {
       error: error.message,
     });
   }

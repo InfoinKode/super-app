@@ -65,7 +65,7 @@ exports.loginUser = async function (userData) {
 
 exports.generateOTP = async function () {
   return crypto.randomInt(100000, 999999).toString();
-}
+};
 
 exports.saveOTP = async function (userId, otp) {
   const expiresAt = Date.now() + 5 * 60 * 1000; // Berlaku 5 menit
@@ -80,24 +80,22 @@ exports.saveOTP = async function (userId, otp) {
     await Otp.create({
       user_id: userId,
       code: otp,
-      expires_at: expiresAt
+      expires_at: expiresAt,
     });
   }
-}
+};
 
 exports.verifyOTP = async function (user_id, otpInput) {
   // Ambil OTP terbaru untuk user
   const otpData = await Otp.findOne({
     where: { user_id },
-    order: [['expires_at', 'DESC']], // Urutkan dari yang terbaru
   });
 
   if (!otpData) return false; // OTP tidak ditemukan
 
   if (Date.now() > new Date(otpData.expires_at).getTime()) return false; // Expired
-
-  return otpInput === otpData.code; // Cek OTP
-}
+  return String(otpInput).trim() === String(otpData.code).trim(); // Cek OTP
+};
 
 exports.getUsers = async function () {
   return await User.findAll({
@@ -112,7 +110,7 @@ exports.getUserById = async function (userData) {
     throw { status: 404, message: "User not found" };
   }
   return user;
-}
+};
 
 exports.updateUser = async function (userData) {
   const { id, name, email, password, phone } = userData;
@@ -126,12 +124,14 @@ exports.updateUser = async function (userData) {
   // Cek apakah email atau nomor telepon sudah digunakan oleh user lain (kecuali jika sama dengan yang saat ini)
   if (email && email !== user.email) {
     const existingUser = await User.findOne({ where: { email } });
-    if (existingUser && existingUser.id !== id) throw { status: 400, message: "Email already in use" };
+    if (existingUser && existingUser.id !== id)
+      throw { status: 400, message: "Email already in use" };
   }
 
   if (phone && phone !== user.phone) {
     const existingPhone = await User.findOne({ where: { phone } });
-    if (existingPhone && existingPhone.id !== id) throw { status: 400, message: "Phone already in use" };
+    if (existingPhone && existingPhone.id !== id)
+      throw { status: 400, message: "Phone already in use" };
   }
 
   let updatedData = {};
@@ -143,9 +143,11 @@ exports.updateUser = async function (userData) {
   }
 
   await User.update(updatedData, { where: { id } });
-  
+
   // Mengembalikan user yang telah diperbarui
-  const updatedUser = await User.findByPk(id, { attributes: { exclude: ["password"] } });
+  const updatedUser = await User.findByPk(id, {
+    attributes: { exclude: ["password"] },
+  });
   return updatedUser;
 };
 
@@ -159,4 +161,4 @@ exports.deleteUser = async function (id) {
   // Hapus user dari database
   await User.destroy({ where: { id } });
   return { message: "User deleted successfully" };
-}
+};

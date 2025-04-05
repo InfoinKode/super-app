@@ -1,0 +1,11 @@
+<% title = "Verifikasi 2FA" %>
+<%- include('../layouts/auth/header') %>
+
+<form method="POST" action="/verify">
+  <div class="mb-3">
+    <label>OTP</label>
+    <input type="text" name="otp" class="form-control" required axlength="6" />
+  </div>
+  <button type="submit" class="btn btn-success w-100">Verifikasi</button>
+</form>
+<%- include('../layouts/auth/footer') %>
