@@ -1,33 +1,35 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
-const sendRegistrationEmail = require("./emailService");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const Otp = require("../models/otpModel");
+const { sendRegistrationEmail } = require("./emailService");
+const sequelize = require("../config/dbConfig");
 
 exports.registerUser = async function (userData) {
   const { name, email, password, phone } = userData;
-
+  const t = await sequelize.transaction();
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) throw { status: 404, message: "Email already exists" };
+
   const existingPhone = await User.findOne({ where: { phone } });
   if (existingPhone) throw { status: 404, message: "Phone already exists" };
+  try {
 
-  // Hash password sebelum disimpan
-  const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
-  // Simpan user ke database
-  const user = await User.create({
-    name,
-    email,
-    password: passwordHash,
-    phone,
-  });
-
-  // Kirim email notifikasi
-  await sendRegistrationEmail(email, name);
-
-  return user;
+    const user = await User.create(
+      { name, email, password: passwordHash, phone },
+      { transaction: t }
+    );
+    await sendRegistrationEmail(email, name);
+    await t.commit();
+    return user;
+  } catch (error) {
+    await t.rollback();
+    console.error("Registrasi gagal:", error);
+    return 
+  }
 };
 
 exports.loginUser = async function (userData) {

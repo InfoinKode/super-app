@@ -4,9 +4,6 @@ const userService = require("../services/userService");
 const { sendWhatsAppMessage } = require("../services/whatsappService");
 
 exports.login = async (req, res) => {
-  if (req.session.loggedIn) {
-    return res.redirect("/");
-  }
   const { client_id, redirect_uri, response_type, scope } = req.query;
   return res.render("auth/login", { client_id, redirect_uri, response_type, scope });
 };
@@ -84,17 +81,44 @@ exports.register = async function (req, res) {
 
 exports.handleRegister = async function (req, res) {
   try {
-    const { name, email, password, confirm_password } = req.body;
+    const { name, email, password, confirm_password, phone } = req.body;
 
-    if (!name || !email || !password || !confirm_password) {
-      return res.render("register", {
+    if (!name) {
+      return res.render("auth/register", {
+        error: "Semua kolom wajib diisi!",
+        success: null,
+      });
+    }
+
+    if (!email) {
+      return res.render("auth/register", {
+        error: "Semua kolom wajib diisi!",
+        success: null,
+      });
+    }
+
+    if (!password) {
+      return res.render("auth/register", {
+        error: "Semua kolom wajib diisi!",
+        success: null,
+      });
+    }
+
+    if (!confirm_password) {
+      return res.render("auth/register", {
+        error: "Semua kolom wajib diisi!",
+        success: null,
+      });
+    }
+    if (!phone) {
+      return res.render("auth/register", {
         error: "Semua kolom wajib diisi!",
         success: null,
       });
     }
 
     if (password !== confirm_password) {
-      return res.render("register", {
+      return res.render("auth/register", {
         error: "Password dan konfirmasi password tidak cocok!",
         success: null,
       });
@@ -103,13 +127,11 @@ exports.handleRegister = async function (req, res) {
       name,
       email,
       password,
-      phone: `111111111${new Date().getMonth() + 1}${new Date().getDate()}`,
+      phone: `62${phone}`,
     };
-    const user = await userService.registerUser(data);
+    await userService.registerUser(data);
     req.flash('success', 'Registrasi berhasil!');
-    return res.render("auth/register", {
-      success: `Registrasi berhasil! Silakan cek email ${user.email}.`,
-    });
+    return res.redirect("/register");
   } catch (error) {
     return res.render("auth/register", {
       error: error.message,

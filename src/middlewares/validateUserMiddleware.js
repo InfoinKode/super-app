@@ -20,6 +20,15 @@ exports.registerValidate = function (req, res, next) {
   emailClean = sanitizeEmail(email);
   phoneClean = sanitizePhone(phone);
 
+  function validatePhoneNumber(phone) {
+    const regex = /^(62|08)/;
+    return regex.test(phone);
+  }
+  if (!validatePhoneNumber(phone)) {
+    return res.status(400).json({ error: "Nomor HP tidak valid (harus diawali dengan 62 atau 08)" });
+    // throw { status: 400, message: "Nomor HP tidak valid (harus diawali dengan 62 atau 08 dan panjang 10–15 digit)" };
+  }
+
   // Validasi format email
   if (!emailClean) {
     return res.status(400).json({ error: "Invalid email format" });

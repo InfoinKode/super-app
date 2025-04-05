@@ -3,8 +3,9 @@ const router = express.Router();
 const v1 = require("./v1");
 const oauth = require("./oauth");
 const auth = require("./authRoutes");
+const { requireLogin } = require("../middlewares/loginMiddleware");
 
-router.get("/", async (req, res, next) => {
+router.get("/", requireLogin, async (req, res, next) => {
   res.render('index', {user: req.session.user})
 });
 
